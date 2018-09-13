@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+     
+  <meta name="viewport" content="width=device-width" />
+   
+   <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; padding: 1.5%; }
+      #map_canvas { height: 100% }
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script type="text/javascript"
+  src="https://maps.googleapis.com/maps/api/js?&sensor=true">
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+        var mapOptions = null;
+        var map = null;
+        var infowindow;
+        ( 
+            function () 
+            {
+                google.maps.Map.prototype.markers = new Array();
+                google.maps.Map.prototype.getMarkers = function ()
+                {
+                return this.markers
+                };
+            
+                google.maps.Map.prototype.clearMarkers = function () 
+                {
+                    for (var i = 0; i < this.markers.length; i++) {
+                        this.markers[i].setMap(null);
+                    }
+                this.markers = new Array();
+                };
+            
+                google.maps.Marker.prototype._setMap = google.maps.Marker.prototype.setMap;
+                google.maps.Marker.prototype.setMap = function (map) 
+                {
+                    if (map) {
+                        map.markers[map.markers.length] = this;
+                    }
+                    this._setMap(map);
+                }
+            }
+        )
+        ();
+            
+        function initMap() {
+            lat= document.getElementById('lat').value;
+            lng = document.getElementById('lng').value;
+            
+            mapOptions = {
+                center: new google.maps.LatLng(lat, lng),
+                zoom: 12,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+
+            map = new google.maps.Map(document.getElementById("map_canvas"),
+                mapOptions);
+            
+            google.maps.event.addListener(map, 'click', function (event) {
+                
+                lat =event.latLng.lat();
+                lng=event.latLng.lng();
+
+                document.getElementById('lat').value=lat;
+                document.getElementById('lng').value=lng;
+                
+                map.clearMarkers();
+                drawMarker();
+            });
+            
+            drawMarker();
+
+        }
+
+        
+        function drawMarker() 
+        {
+            var infowindow = new google.maps.InfoWindow();
+            var marker, i; 
+            //var nombre = sessionStorage.nombreCliente;
+            var message = "Mi casa";
+          
+            var pinColor = "FFFF00";
+            var charMarker = 'H';
+            
+                var pinImage = new google.maps.MarkerImage
+                
+                ("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=" + charMarker + "|" + pinColor,
+                        new google.maps.Size(40, 60),
+                        new google.maps.Point(0, 0),
+                        new google.maps.Point(20, 60));
+
+                marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(lat, lng),
+                    icon: pinImage,
+                    title: '' + message,
+                    map: map
+                });
+
+               
+
+                google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                    return function () {
+                        infowindow.setContent("adsoft");
+                        infowindow.open(map, marker);
+                    }
+                })(marker, i));
+           
+        }
+
+        
+    
+    function obtenerDireccion()
+    {
+        alert("obteniendo direccion ...");
+
+        var geocoder = new google.maps.Geocoder;
+        
+        var mylat = document.getElementById('lat').value;
+        var mylng = document.getElementById('lng').value;
+
+        var latlng = {lat: parseFloat(mylat), lng: parseFloat(mylng)};
+ 
+    geocoder.geocode({'location': latlng}, function(results, status) {
+
+    if (status === 'OK') {
+
+      if (results) {
+          //window.alert(results);
+          //window.alert(JSON.stringify(results[0].address_components[1].long_name));
+          var str = JSON.stringify(results[0].address_components[1].long_name);
+          document.getElementById("addr").value = str;
+        
+      } else {
+        window.alert('No results found');
+      }
+         } else {
+      window.alert('Geocoder failed due to: ' + status);
+        }
+    });
+    }
+
+
+    function obtenerClima()
+    {
+        alert("obteniendo clima ...");
+
+        lat= document.getElementById('lat').value;
+        lng = document.getElementById('lng').value;
+        var apiKey = "3256b56a1185be84ed2843e52e8e2e2c";
+
+      $.getJSON("http://api.openweathermap.org/data/2.5/weather?lat=" + 
+        lat + "&lon=" + lng + "&appid=" + apiKey, function(data) 
+        {
+            //alert(JSON.stringify(data.weather[0].main));
+            var str = JSON.stringify(data.weather[0].main);
+            document.getElementById("weat").value = str;
+        })
+    }
+
+ 
+
+    </script>
+  
+  <style type="text/css">
+        .colorYellow { color: yellow; font-size: 3em;}
+        .colorRed { color: red; font-size: 3em;}
+        .colorBlue { color: blue; font-size: 3em;}
+        .colorGreen { color: green; font-size: 3em;}
+        .colorPurple { color: purple; font-size: 0.5em;}
+ </style>
+ 
+  </head>
+
+  <body onload="initMap()">
+   
+       <table border="0">
+            <tr>
+                <td class='colorBlue'>Google</td>
+                <td class='colorRed'>Maps</td>
+                <td class='colorYellow'><b>Demo </td>
+                <td class='colorPurple'><b>by JC </b></td>
+                
+            </tr>
+        </table>
+
+      <table class="table" style="border: none;">
+        <tr>
+            <td>
+                LAT:
+                <input name="lat" id="lat" type="text" value="19.04406" size="10"/>
+                LNG:
+                <input name="lng" id="lng" type="text" value="-98.257519" size="10"/>
+                <input type="submit" value="Buscar" onclick="initMap()"/>
+            </td>
+        </tr>
+     </table>
+
+      <div class="map" id="map_canvas"  style="width: 98%; height: 75%; float: center; border: 1px solid black;">
+
+      </div>
+
+      <table class="table" style="border: none;">
+            <tr>
+                <td>
+                    Address:
+                    <input name="add" id="addr" type="text" value="" size="30"/>
+    
+    
+                    <input type="button" value="Obtener Direccion" onclick="obtenerDireccion()"/>
+    
+                    Weather:
+                    <input name="weat" id="weat" type="text" value="" size="20"/>
+    
+                    <input type="button" value="Obtener Clima" onclick="obtenerClima()"/>
+                </td>
+            </tr>
+         </table>
+  </body>
+</html>
